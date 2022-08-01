@@ -2,7 +2,9 @@
 **/*.rs.bk
 
 /target
-/Cargo.lock
+
+# Cargo.lock is needed for reproducible builds.
+# /Cargo.lock
 
 # local env
 **/.env
