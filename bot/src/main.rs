@@ -30,7 +30,6 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[tokio::main]
-#[instrument]
 async fn main() -> anyhow::Result<()> {
     // Tracing compatibilty layer for crates that use `log`
     LogTracer::init()?;
