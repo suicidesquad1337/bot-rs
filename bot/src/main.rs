@@ -1,18 +1,23 @@
+use std::sync::Arc;
+
 use figment::{
     providers::{Env, Format, Toml},
     Figment,
 };
-use poise::{
-    serenity_prelude::GatewayIntents, Framework, FrameworkOptions, PrefixFrameworkOptions,
-};
+use handler::GlobalEventHandler;
+use poise::{serenity_prelude::GatewayIntents, FrameworkOptions, PrefixFrameworkOptions};
 use secrecy::ExposeSecret;
+use serenity::Client;
 use sqlx::postgres::PgPoolOptions;
+use tokio::sync::RwLock;
 use tracing::Instrument;
 use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
 
 mod config;
 mod data;
+mod handler;
+mod invite;
 mod register;
 
 #[doc(inline)]
@@ -24,6 +29,8 @@ extern crate tracing;
 extern crate anyhow;
 #[macro_use]
 extern crate poise;
+#[macro_use]
+extern crate async_trait;
 
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
@@ -56,21 +63,39 @@ async fn main() -> anyhow::Result<()> {
         .await
         .map_err(|e| anyhow!("Failed to run database migrations: {}", e))?;
 
-    // bot setup
-    let framework = Framework::builder()
-        .options(FrameworkOptions {
+    let intents = GatewayIntents::non_privileged()
+        | GatewayIntents::MESSAGE_CONTENT
+        | GatewayIntents::GUILD_INVITES;
+
+    let client = Client::builder(config.discord.token.expose_secret(), intents);
+
+    let mut handler: GlobalEventHandler<Data, Error> = GlobalEventHandler {
+        options: FrameworkOptions {
             prefix_options: PrefixFrameworkOptions {
-                prefix: Some((&config.discord.prefix).into()),
+                prefix: Some(config.discord.prefix.clone()),
                 ..Default::default()
             },
+            owners: config.discord.bot_owners.clone(),
             commands: vec![register::register()],
             ..Default::default()
-        })
-        .token(config.discord.token.expose_secret())
-        .intents(GatewayIntents::non_privileged() | GatewayIntents::MESSAGE_CONTENT)
-        .user_data_setup(move |_, _, _| Box::pin(async move { Ok(Data::new(pool, config)) }));
+        },
+        data: Data::new(pool, config),
+        // set the shard to None since we get it later by the `client`. However, since the client
+        // needs ours handler to begin with, we have to do this ugly workaround
+        shard_manager: RwLock::const_new(None),
+        // this is set in the Ready event
+        whoami: RwLock::const_new(None),
+    };
 
-    framework.run().await?;
+    poise::set_qualified_names(&mut handler.options.commands);
+
+    let handler = Arc::new(handler);
+
+    let mut client = client.event_handler_arc(handler.clone()).await?;
+
+    *handler.shard_manager.write().await = Some(client.shard_manager.clone());
+
+    client.start().await?;
 
     Ok(())
 }

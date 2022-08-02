@@ -1,3 +1,6 @@
+use std::collections::HashSet;
+
+use poise::serenity_prelude::UserId;
 use secrecy::SecretString;
 use serde::Deserialize;
 use serde_with::{serde_as, DisplayFromStr};
@@ -30,8 +33,12 @@ fn default_log_level() -> Level {
     }
 }
 
+#[serde_as]
 #[derive(Debug, Deserialize)]
 pub struct Discord {
     pub token: SecretString,
     pub prefix: String,
+    #[serde_as(as = "HashSet<DisplayFromStr>")]
+    #[serde(default)]
+    pub bot_owners: HashSet<UserId>,
 }
