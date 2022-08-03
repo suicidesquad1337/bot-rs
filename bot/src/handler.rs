@@ -3,15 +3,15 @@ use std::{fmt::Debug, sync::Arc};
 use poise::{
     dispatch_event,
     serenity_prelude::{
-        Context, EventHandler, Guild, Interaction, InviteCreateEvent, InviteDeleteEvent, Message,
-        Ready, ShardManager, UnavailableGuild, UserId,
+        Context, EventHandler, Guild, Interaction, InviteCreateEvent, InviteDeleteEvent, Member,
+        Message, Ready, ShardManager, UnavailableGuild, UserId,
     },
     Event, FrameworkContext, FrameworkOptions,
 };
 use tokio::sync::{Mutex, RwLock};
 use tracing::{Instrument, Level};
 
-use crate::invite::InviteStore;
+use crate::invite::{InviteStore, InviteTracker};
 
 #[derive(Debug)]
 pub struct GlobalEventHandler<D, E> {
@@ -103,5 +103,10 @@ where
     #[instrument(skip_all)]
     async fn invite_delete(&self, ctx: Context, invite: InviteDeleteEvent) {
         InviteStore::invite_deleted(&ctx, &invite).await;
+    }
+
+    #[instrument(skip_all)]
+    async fn guild_member_addition(&self, ctx: Context, member: Member) {
+        InviteTracker::on_join(ctx, member).await;
     }
 }

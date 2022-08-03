@@ -65,21 +65,25 @@ async fn main() -> anyhow::Result<()> {
 
     let intents = GatewayIntents::non_privileged()
         | GatewayIntents::MESSAGE_CONTENT
-        | GatewayIntents::GUILD_INVITES;
+        | GatewayIntents::GUILDS
+        | GatewayIntents::all();
 
     let client = Client::builder(config.discord.token.expose_secret(), intents);
 
+    let owners = config.discord.bot_owners.clone();
+    let prefix = config.discord.prefix.clone();
+    let data = Data::new(pool, config);
     let mut handler: GlobalEventHandler<Data, Error> = GlobalEventHandler {
         options: FrameworkOptions {
             prefix_options: PrefixFrameworkOptions {
-                prefix: Some(config.discord.prefix.clone()),
+                prefix: Some(prefix),
                 ..Default::default()
             },
-            owners: config.discord.bot_owners.clone(),
+            owners,
             commands: vec![register::register()],
             ..Default::default()
         },
-        data: Data::new(pool, config),
+        data: data.clone(),
         // set the shard to None since we get it later by the `client`. However, since the client
         // needs ours handler to begin with, we have to do this ugly workaround
         shard_manager: RwLock::const_new(None),
@@ -91,7 +95,10 @@ async fn main() -> anyhow::Result<()> {
 
     let handler = Arc::new(handler);
 
-    let mut client = client.event_handler_arc(handler.clone()).await?;
+    let mut client = client
+        .event_handler_arc(handler.clone())
+        .type_map_insert::<Data>(data)
+        .await?;
 
     *handler.shard_manager.write().await = Some(client.shard_manager.clone());
 
