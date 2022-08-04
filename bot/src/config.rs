@@ -49,7 +49,8 @@ pub struct Discord {
     #[serde(default = "default_prefix")]
     pub prefix: String,
     #[serde_as(as = "HashSet<DisplayFromStr>")]
-    #[serde(default)]
+    // rename to `owners` because underscores dont work in env variables
+    #[serde(default, rename = "owners")]
     pub bot_owners: HashSet<UserId>,
 }
 
