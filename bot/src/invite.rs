@@ -92,6 +92,7 @@ impl TypeMapKey for InviteStore {
     type Value = RwLock<HashMap<GuildId, HashMap<String, Invite>>>;
 }
 
+// FIXME: listen for permission update in case the bot didnt have the permission to see invites but now has
 impl InviteStore {
     #[instrument(skip_all, name = "add_invites_created_guild", level = "debug")]
     pub async fn invite_guild_created(ctx: Context, guild: &Guild) {
@@ -235,11 +236,6 @@ impl InviteTracker {
         // wrtier only used at the end to update the local cache
         let mut store_reader = store.write().await;
         let old_state_store = store_reader.get_mut(&member.guild_id).unwrap();
-        event!(
-            Level::DEBUG,
-            "invite_store at beginning: {:#?}",
-            old_state_store
-        );
         let current_state_store: HashMap<String, Invite> = match member
             .guild_id
             .invites(ctx.http.clone())

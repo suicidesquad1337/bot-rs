@@ -1,0 +1,6 @@
+/target
+Dockerfile
+Bot.toml
+docker-compose.yml
+.env
+**/target

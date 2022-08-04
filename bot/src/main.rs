@@ -14,6 +14,7 @@ use tracing::Instrument;
 use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
 
+mod commands;
 mod config;
 mod data;
 mod handler;
@@ -66,6 +67,9 @@ async fn main() -> anyhow::Result<()> {
     let intents = GatewayIntents::non_privileged()
         | GatewayIntents::MESSAGE_CONTENT
         | GatewayIntents::GUILDS
+        | GatewayIntents::GUILD_INVITES
+        | GatewayIntents::GUILD_PRESENCES
+        | GatewayIntents::GUILD_MEMBERS
         | GatewayIntents::all();
 
     let client = Client::builder(config.discord.token.expose_secret(), intents);
@@ -80,7 +84,7 @@ async fn main() -> anyhow::Result<()> {
                 ..Default::default()
             },
             owners,
-            commands: vec![register::register()],
+            commands: vec![register::register(), commands::invite()],
             ..Default::default()
         },
         data: data.clone(),

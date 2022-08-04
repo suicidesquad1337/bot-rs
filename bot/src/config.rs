@@ -9,6 +9,7 @@ use tracing::Level;
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub database: Database,
+    #[serde(default)]
     pub tracing: Tracing,
     pub discord: Discord,
 }
@@ -26,6 +27,14 @@ pub struct Tracing {
     pub level: Level,
 }
 
+impl Default for Tracing {
+    fn default() -> Self {
+        Self {
+            level: default_log_level(),
+        }
+    }
+}
+
 fn default_log_level() -> Level {
     match cfg!(debug_asserations) {
         true => Level::DEBUG,
@@ -37,8 +46,13 @@ fn default_log_level() -> Level {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Discord {
     pub token: SecretString,
+    #[serde(default = "default_prefix")]
     pub prefix: String,
     #[serde_as(as = "HashSet<DisplayFromStr>")]
     #[serde(default)]
     pub bot_owners: HashSet<UserId>,
+}
+
+fn default_prefix() -> String {
+    "?".to_string()
 }
