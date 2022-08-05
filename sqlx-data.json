@@ -14,5 +14,31 @@
       }
     },
     "query": "\n        INSERT INTO invited_members (\"user\", inviter, invite, guild)\n        VALUES ($1, $2, $3, $4)\n        ON CONFLICT(\"user\", \"guild\") DO UPDATE\n        SET inviter = EXCLUDED.inviter,\n        invite = EXCLUDED.invite,\n        used_at = EXCLUDED.used_at\n        "
+  },
+  "97b88bdacca7dd44cc50ebc33aa4f98ef58089476e580bd895791f2ea745a533": {
+    "describe": {
+      "columns": [
+        {
+          "name": "user",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "used_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "SELECT \"user\", \"used_at\" FROM invited_members WHERE invite = $1"
   }
 }
