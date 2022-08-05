@@ -1,7 +1,6 @@
-use std::fmt::Display;
-
 use chrono::{Duration, Utc};
 use comfy_table::{presets::NOTHING, Cells, Table};
+use poise::serenity_prelude::{Member, UserId};
 
 use crate::{
     invite::{Invite, InviteStore},
@@ -12,15 +11,32 @@ use crate::{
     slash_command,
     guild_only,
     required_bot_permissions = "MANAGE_GUILD",
-    subcommands("list")
+    subcommands("list", "list_of")
 )]
 pub async fn invite(_: Context<'_>) -> Result<()> {
     Ok(())
 }
 
-/// List invites created by you
-#[command(slash_command)]
+// List invites created by you
+#[command(slash_command, ephemeral, required_bot_permissions = "MANAGE_GUILD")]
 pub async fn list(ctx: Context<'_>) -> Result<()> {
+    list_invites(ctx, ctx.author().id).await
+}
+
+/// List invites created by a member of this guild
+#[command(
+    slash_command,
+    ephemeral,
+    required_bot_permissions = "MANAGE_GUILD",
+    required_permissions = "MANAGE_GUILD",
+    rename = "list-of"
+)]
+pub async fn list_of(ctx: Context<'_>, member: Member) -> Result<()> {
+    list_invites(ctx, member.user.id).await
+}
+
+/// Helper function to list the invites of an user
+pub async fn list_invites(ctx: Context<'_>, user: UserId) -> Result<()> {
     let reader = ctx.discord().data.read().await;
     let reader = reader
         .get::<InviteStore>()
@@ -31,10 +47,10 @@ pub async fn list(ctx: Context<'_>) -> Result<()> {
         .get(&ctx.guild_id().unwrap())
         .ok_or_else(|| anyhow!("no invites stored for this guild"))?
         .iter()
-        .filter(|(_, invite)| invite.inviter == ctx.author().id);
-    let table = generate_invite_table(invites, false);
+        .filter(|(_, invite)| invite.inviter == user);
+    let table = generate_invite_table(invites, user != ctx.author().id, user);
     ctx.send(|reply| {
-        reply.content(format!("```\n{}\n```", table));
+        reply.content(table);
         reply.ephemeral(true)
     })
     .await?;
@@ -44,7 +60,16 @@ pub async fn list(ctx: Context<'_>) -> Result<()> {
 fn generate_invite_table<'a>(
     invites: impl Iterator<Item = (&'a String, &'a Invite)>,
     display_inviter: bool,
-) -> impl Display {
+    member: UserId,
+) -> String {
+    let mut invites = invites.peekable();
+
+    if invites.peek().is_none() {
+        return match display_inviter {
+            true => format!("<@{}> has no invites in this guild.", member),
+            false => "You have no invites in this guild.".to_string(),
+        };
+    }
     let mut table = Table::new();
     let mut headers = vec!["Invite", "Uses", "Expires"];
     if display_inviter {
@@ -114,5 +139,5 @@ fn generate_invite_table<'a>(
         .for_each(|row| {
             table.add_row(row);
         });
-    table.to_string()
+    format!("```\n{}\n```", table)
 }
