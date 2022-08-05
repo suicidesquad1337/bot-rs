@@ -7,6 +7,7 @@ use crate::{
     Context, Result,
 };
 
+/// Manage invites
 #[command(
     slash_command,
     guild_only,
@@ -17,9 +18,12 @@ pub async fn invite(_: Context<'_>) -> Result<()> {
     Ok(())
 }
 
-// List invites created by you or another member
+/// List invites created by you or another member
 #[command(slash_command, ephemeral, required_bot_permissions = "MANAGE_GUILD")]
-pub async fn list(ctx: Context<'_>, member: Option<Member>) -> Result<()> {
+pub async fn list(
+    ctx: Context<'_>,
+    #[description = "The member you want to view the invites of"] member: Option<Member>,
+) -> Result<()> {
     match member {
         Some(member) => {
             match ctx
@@ -29,43 +33,34 @@ pub async fn list(ctx: Context<'_>, member: Option<Member>) -> Result<()> {
                 .await?
                 .manage_guild()
             {
-                true => list_invites(ctx, member.user.id).await,
+                _ if ctx.author().id == member.user.id => {
+                    list_invites(ctx, member.user.id, true).await
+                }
+                true => list_invites(ctx, member.user.id, true).await,
                 false => Err(anyhow!(
                     "You don't have the permission to list invites of other members."
                 )
                 .into()),
             }
         }
-        None => list_invites(ctx, ctx.author().id).await,
+        None => list_invites(ctx, ctx.author().id, false).await,
     }
 }
 
-/// List invites created by a member of this guild
-#[command(
-    slash_command,
-    ephemeral,
-    required_bot_permissions = "MANAGE_GUILD",
-    required_permissions = "MANAGE_GUILD",
-    rename = "list-of"
-)]
-pub async fn list_of(ctx: Context<'_>, member: Member) -> Result<()> {
-    list_invites(ctx, member.user.id).await
-}
-
 /// Helper function to list the invites of an user
-pub async fn list_invites(ctx: Context<'_>, user: UserId) -> Result<()> {
+pub async fn list_invites(ctx: Context<'_>, user: UserId, display_inviter: bool) -> Result<()> {
     let reader = ctx.discord().data.read().await;
     let reader = reader
         .get::<InviteStore>()
-        .ok_or_else(|| anyhow!("invite store missing"))?
+        .ok_or_else(|| anyhow!("Invite store missing for this guild."))?
         .read()
         .await;
     let invites = reader
         .get(&ctx.guild_id().unwrap())
-        .ok_or_else(|| anyhow!("no invites stored for this guild"))?
+        .ok_or_else(|| anyhow!("No invites stored for this guild."))?
         .iter()
         .filter(|(_, invite)| invite.inviter == user);
-    let table = generate_invite_table(invites, user != ctx.author().id, user);
+    let table = generate_invite_table(invites, display_inviter, user);
     ctx.send(|reply| {
         reply.content(table);
         reply.ephemeral(true)
