@@ -1,18 +1,23 @@
 use chrono::{Duration, Utc};
 use comfy_table::{presets::NOTHING, Cells, Table};
-use poise::serenity_prelude::{Member, UserId};
+use poise::serenity_prelude::{CacheHttp, Member, UserId};
 
 use crate::{
     invite::{Invite, InviteStore},
     Context, Result,
 };
 
+mod revoke;
+
+#[doc(inline)]
+pub use revoke::revoke;
+
 /// Manage invites
 #[command(
     slash_command,
     guild_only,
     required_bot_permissions = "MANAGE_GUILD",
-    subcommands("list")
+    subcommands("list", "revoke")
 )]
 pub async fn invite(_: Context<'_>) -> Result<()> {
     Ok(())
@@ -29,7 +34,7 @@ pub async fn list(
             match ctx
                 .guild()
                 .unwrap()
-                .member_permissions(ctx.discord().http.clone(), ctx.author().id)
+                .member_permissions(ctx.discord().http(), ctx.author().id)
                 .await?
                 .manage_guild()
             {

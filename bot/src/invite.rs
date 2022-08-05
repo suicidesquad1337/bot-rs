@@ -7,8 +7,8 @@ use std::{
 
 use chrono::{DateTime, Duration, Utc};
 use poise::serenity_prelude::{
-    Context, Guild, GuildId, InviteCreateEvent, InviteDeleteEvent, Member, RichInvite, TypeMapKey,
-    UnavailableGuild, UserId,
+    CacheHttp, Context, Guild, GuildId, InviteCreateEvent, InviteDeleteEvent, Member, RichInvite,
+    TypeMapKey, UnavailableGuild, UserId,
 };
 use tokio::sync::RwLock;
 use tracing::{Instrument, Level};
@@ -98,7 +98,7 @@ impl TypeMapKey for InviteStore {
 impl InviteStore {
     #[instrument(skip_all, name = "add_invites_created_guild", level = "debug")]
     pub async fn invite_guild_created(ctx: Context, guild: &Guild) {
-        match guild.invites(ctx.http).await {
+        match guild.invites(ctx.http()).await {
             Ok(invites) => {
                 event!(
                     Level::DEBUG,
@@ -240,6 +240,8 @@ impl InviteTracker {
         let old_state_store = store_reader.get_mut(&member.guild_id).unwrap();
         let current_state_store: HashMap<String, Invite> = match member
             .guild_id
+            // We don't use a cached version here because it is absolutely necessary that we get up
+            // to date data
             .invites(ctx.http.clone())
             .await
         {
@@ -258,7 +260,7 @@ impl InviteTracker {
                 event!(Level::WARN, error = ?e, "cannot fetch invites for comparison: {}", e);
                 match member
                     .kick_with_reason(
-                        ctx.http,
+                        ctx.http(),
                         &format!("Cannot fetch invites for comparison: {}", e),
                     )
                     .await
@@ -325,7 +327,7 @@ impl InviteTracker {
                     );
                     match member
                         .kick_with_reason(
-                            ctx.http,
+                            ctx.http(),
                             "failed to associate an invite with this member",
                         )
                         .await
@@ -368,7 +370,7 @@ impl InviteTracker {
             Err(e) => {
                 event!(Level::ERROR, error = ?e, "failed to insert into database: {}", e);
                 match member
-                    .kick_with_reason(ctx.http, "error inserting user in database")
+                    .kick_with_reason(ctx.http(), "error inserting user in database")
                     .await
                 {
                     Ok(_) => (),
