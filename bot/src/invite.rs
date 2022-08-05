@@ -1,13 +1,14 @@
 //! Invite tracking
 
+use std::{
+    collections::{HashMap, HashSet},
+    iter::once,
+};
+
 use chrono::{DateTime, Duration, Utc};
 use poise::serenity_prelude::{
     Context, Guild, GuildId, InviteCreateEvent, InviteDeleteEvent, Member, RichInvite, TypeMapKey,
     UnavailableGuild, UserId,
-};
-use std::{
-    collections::{HashMap, HashSet},
-    iter::once,
 };
 use tokio::sync::RwLock;
 use tracing::{Instrument, Level};
@@ -92,7 +93,8 @@ impl TypeMapKey for InviteStore {
     type Value = RwLock<HashMap<GuildId, HashMap<String, Invite>>>;
 }
 
-// FIXME: listen for permission update in case the bot didnt have the permission to see invites but now has
+// FIXME: listen for permission update in case the bot didnt have the permission
+// to see invites but now has
 impl InviteStore {
     #[instrument(skip_all, name = "add_invites_created_guild", level = "debug")]
     pub async fn invite_guild_created(ctx: Context, guild: &Guild) {
@@ -307,7 +309,8 @@ impl InviteTracker {
                     None => false,
                 }) {
                 Some((code, new_invite)) => {
-                    // update _this_ invite in the local invite cache. This is needed, because the `use` count has changed, because this invite was used.
+                    // update _this_ invite in the local invite cache. This is needed, because the
+                    // `use` count has changed, because this invite was used.
                     old_state_store.insert(code.to_owned(), new_invite.to_owned());
                     (member, new_invite, code)
                 }
