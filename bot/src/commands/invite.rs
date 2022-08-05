@@ -11,16 +11,33 @@ use crate::{
     slash_command,
     guild_only,
     required_bot_permissions = "MANAGE_GUILD",
-    subcommands("list", "list_of")
+    subcommands("list")
 )]
 pub async fn invite(_: Context<'_>) -> Result<()> {
     Ok(())
 }
 
-// List invites created by you
+// List invites created by you or another member
 #[command(slash_command, ephemeral, required_bot_permissions = "MANAGE_GUILD")]
-pub async fn list(ctx: Context<'_>) -> Result<()> {
-    list_invites(ctx, ctx.author().id).await
+pub async fn list(ctx: Context<'_>, member: Option<Member>) -> Result<()> {
+    match member {
+        Some(member) => {
+            match ctx
+                .guild()
+                .unwrap()
+                .member_permissions(ctx.discord().http.clone(), ctx.author().id)
+                .await?
+                .manage_guild()
+            {
+                true => list_invites(ctx, member.user.id).await,
+                false => Err(anyhow!(
+                    "You don't have the permission to list invites of other members."
+                )
+                .into()),
+            }
+        }
+        None => list_invites(ctx, ctx.author().id).await,
+    }
 }
 
 /// List invites created by a member of this guild
