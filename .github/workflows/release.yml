@@ -22,7 +22,10 @@ on:
                     - minor
                     # patch = bug fix, no feature added, no breaking changes 1.0.x
                     - patch
-
+            overwrite_version:
+                description: "Directly set the version for this release"
+                required: false
+                type: string
 jobs:
     print-type:
         runs-on: ubuntu-latest
