@@ -1,0 +1,30 @@
+name: release and publish
+on:
+    workflow_dispatch:
+        inputs:
+            release_type:
+                description: "The type of this release"
+                required: true
+                type: choice
+                options:
+                    - release
+                    - rc
+                    - beta
+                    - alpha
+            scope:
+                description: "The scope of this release"
+                required: true
+                type: choice
+                options:
+                    # major = breaking change x.0.0
+                    - major
+                    # minor = added feature 1.x.0
+                    - minor
+                    # patch = bug fix, no feature added, no breaking changes 1.0.x
+                    - patch
+
+jobs:
+    print-type:
+        runs-on: ubuntu-latest
+        steps:
+            - run: "echo release type is ${{ inputs.release_type }} with scope ${{ inputs.scope }}"
