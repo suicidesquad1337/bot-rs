@@ -58,7 +58,7 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     // run database migrations
-    sqlx::migrate!("../migrations/")
+    sqlx::migrate!("./migrations/")
         .run(&pool)
         .instrument(info_span!("database_migrations"))
         .await
