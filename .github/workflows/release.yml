@@ -20,6 +20,7 @@ on:
                 type: string
 env:
     REGISTRY: "ghcr.io"
+    IMAGE_NAME: "${{ github.repository }}"
 jobs:
     release:
         environment: release
@@ -63,7 +64,7 @@ jobs:
               id: metadata
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
-                  images: suicidesquad1337/bot
+                  images: "${{ env.REGISTRY }}/${{ env.REGISTRY }}"
                   tags: |
                       type=semver,pattern={{version}},value=${{ env.VERSION }}
             - name: log in to GHCR
