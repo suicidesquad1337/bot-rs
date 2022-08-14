@@ -2,32 +2,41 @@ name: release and publish
 on:
     workflow_dispatch:
         inputs:
-            release_type:
-                description: "The type of this release"
+            bump_level:
+                description: "The bump level of this release"
                 required: true
                 type: choice
                 options:
-                    - release
-                    - rc
-                    - beta
                     - alpha
-            scope:
-                description: "The scope of this release"
-                required: true
-                type: choice
-                options:
-                    # major = breaking change x.0.0
-                    - major
-                    # minor = added feature 1.x.0
-                    - minor
-                    # patch = bug fix, no feature added, no breaking changes 1.0.x
+                    - beta
+                    - rc
+                    - release
                     - patch
+                    - minor
+                    - major
             overwrite_version:
                 description: "Overwrite the version for this release"
                 required: false
                 type: string
+env:
+    REGISTRY: "ghcr.io"
+    IMAGE_NAME: "pwnhub-bot"
 jobs:
-    print-type:
+    release:
         runs-on: ubuntu-latest
         steps:
-            - run: "echo release type is ${{ inputs.release_type }} with scope ${{ inputs.scope }}"
+            - uses: actions/checkout@v3
+            - name: install git-cliff
+              uses: actions-rs/install@v0.1
+              with:
+                  crate: git-cliff
+                  version: latest
+            - name: install cargo-release
+              uses: actions-rs/install@v0.1
+              with:
+                  crate: cargo-releasee
+                  version: latest
+            - run: |
+                  OVERWRITE=${{ inputs.overwrite_version }}
+                  BUMP_LEVEL=${OVERWRITE:-${{ inputs.bump_level}}}
+                  cargo release --v --execute --no-verify --no-publish --workspace $BUMP_LEVEL
