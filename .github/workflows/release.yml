@@ -40,4 +40,4 @@ jobs:
               run: |
                   OVERWRITE=${{ inputs.overwrite_version }}
                   BUMP_LEVEL=${OVERWRITE:-${{ inputs.bump_level}}}
-                  cargo release --v --execute --no-verify --no-publish --workspace $BUMP_LEVEL
+                  cargo release --verbose --execute --no-verify --no-publish --workspace $BUMP_LEVEL
