@@ -4,7 +4,7 @@ use poise::{
     dispatch_event,
     serenity_prelude::{
         Context, EventHandler, Guild, Interaction, InviteCreateEvent, InviteDeleteEvent, Member,
-        Message, Ready, ShardManager, UnavailableGuild, UserId,
+        Message, Ready, ShardManager, UnavailableGuild, UserId, StickerFormatType,
     },
     Event, FrameworkContext, FrameworkOptions,
 };
@@ -73,6 +73,12 @@ where
 
     #[instrument(skip_all)]
     async fn message(&self, ctx: Context, new_message: Message) {
+        for sticker in &new_message.sticker_items {
+            if sticker.format_type == StickerFormatType::Lottie {
+                new_message.reply_mention(&ctx, "hurensohn").await;
+                new_message.delete(&ctx).await;
+            }
+        }
         self.dispatch_event(ctx, Event::Message { new_message })
             .instrument(debug_span!("dispatch_message_event"))
             .await;
