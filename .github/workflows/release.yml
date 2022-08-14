@@ -34,9 +34,10 @@ jobs:
             - name: install cargo-release
               uses: actions-rs/install@v0.1
               with:
-                  crate: cargo-releasee
+                  crate: cargo-release
                   version: latest
-            - run: |
+            - name: run cargo-release
+              run: |
                   OVERWRITE=${{ inputs.overwrite_version }}
                   BUMP_LEVEL=${OVERWRITE:-${{ inputs.bump_level}}}
                   cargo release --v --execute --no-verify --no-publish --workspace $BUMP_LEVEL
