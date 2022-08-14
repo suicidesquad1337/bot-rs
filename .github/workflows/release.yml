@@ -20,7 +20,6 @@ on:
                 type: string
 env:
     REGISTRY: "ghcr.io"
-    IMAGE_NAME: "pwnhub-bot"
 jobs:
     release:
         environment: release
@@ -40,12 +39,6 @@ jobs:
                   git_tag_gpgsign: true
                   # not supported by github
                   git_push_gpgsign: false
-            #- name: set git user and email and signing key
-            #  run: |
-            #      git conifg user.signingkey 97846C8651A44F47
-            #      git config commit.gpgsign true
-            #      git config user.name PwnHub Release
-            #      git config user.email release@pwnhub.club
             - name: install git-cliff
               uses: baptiste0928/cargo-install@v1
               with:
@@ -61,3 +54,26 @@ jobs:
                   OVERWRITE=${{ inputs.overwrite_version }}
                   BUMP_LEVEL=${OVERWRITE:-${{ inputs.bump_level}}}
                   cargo release --verbose --execute --no-verify --no-publish --sign --no-confirm --workspace $BUMP_LEVEL
+            - name: extract version
+              run: |
+                  echo VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select( .name=="pwnhub-bot" ) | .version') >> $GITHUB_ENV
+
+            - name: setup metadata
+              uses: docker/metadata-action@v4
+              id: metadata
+              with:
+                  images: pwnhub/bot
+                  tags: |
+                      type=semver,pattern={{version}},value=${{ env.VERSION }}
+            - name: log in to GHCR
+              uses: docker/login-action@v1
+              with:
+                  registry: ${{ env.REGISTRY }}
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+            - name: build docker image and push
+              uses: docker/build-push-action@v2
+              with:
+                context: "."
+                push: true
+                tags: "${{ steps.metadata.outputs.tags }}""
