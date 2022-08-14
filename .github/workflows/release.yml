@@ -62,7 +62,8 @@ jobs:
               uses: docker/metadata-action@v4
               id: metadata
               with:
-                  images: pwnhub/bot
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  images: suicidesquad1337/bot
                   tags: |
                       type=semver,pattern={{version}},value=${{ env.VERSION }}
             - name: log in to GHCR
@@ -74,6 +75,6 @@ jobs:
             - name: build docker image and push
               uses: docker/build-push-action@v2
               with:
-                context: "."
-                push: true
-                tags: "${{ steps.metadata.outputs.tags }}""
+                  context: "."
+                  push: true
+                  tags: "${{ steps.metadata.outputs.tags }}"
