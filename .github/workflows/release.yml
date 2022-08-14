@@ -28,10 +28,22 @@ jobs:
             - uses: actions/checkout@v3
               with:
                   fetch-depth: 0
-            - name: set git user and email
-              run: |
-                  git config user.name github-actions
-                  git config user.email github-actions@github.com
+            - name: load gpg key used to sign commits
+              uses: crazy-max/ghaction-import-gpg@v5
+
+              with:
+                  gpg_private_key: ${{ secrets.PGP_SIGNING_SUBKEY }}
+                  git_user_signingkey: true
+                  fingerprint: 97846C8651A44F47
+                  git_commit_gpgsign: true
+                  git_tag_gpgsign: true
+                  git_push_gpgsign: true
+            #- name: set git user and email and signing key
+            #  run: |
+            #      git conifg user.signingkey 97846C8651A44F47
+            #      git config commit.gpgsign true
+            #      git config user.name PwnHub Release
+            #      git config user.email release@pwnhub.club
             - name: install git-cliff
               uses: actions-rs/install@v0.1
               with:
