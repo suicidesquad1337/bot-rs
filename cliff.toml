@@ -42,7 +42,7 @@ commit_parsers = [
     { message = "^test", group = "Testing" },
     { message = "^build", group = "Build" },
     { message = "^ci|^cd", group = "CI/CD" },
-    { message = "^chore\\(release\\): prepare for", skip = true },
+    { message = "^chore\\(release\\): Release", skip = true },
     { message = "^chore", group = "Miscellaneous Tasks" },
     { message = "^revert", group = "Revert" },
     { body = ".*security", group = "Security" },

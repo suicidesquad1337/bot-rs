@@ -1,0 +1,5 @@
+pre-release-commit-message = "chore(release): Release version {{ version }}"
+consolidate-commits = true
+consolidate-pushes = true
+shared-version = true
+allow-branch = ["main"]
