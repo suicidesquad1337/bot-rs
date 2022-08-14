@@ -47,12 +47,12 @@ jobs:
             #      git config user.name PwnHub Release
             #      git config user.email release@pwnhub.club
             - name: install git-cliff
-              uses: actions-rs/install@v0.1
+              uses: baptiste0928/cargo-install@v1
               with:
                   crate: git-cliff
                   version: latest
             - name: install cargo-release
-              uses: actions-rs/install@v0.1
+              uses: baptiste0928/cargo-install@v1
               with:
                   crate: cargo-release
                   version: latest
