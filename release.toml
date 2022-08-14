@@ -3,3 +3,4 @@ consolidate-commits = true
 consolidate-pushes = true
 shared-version = true
 allow-branch = ["main"]
+publish = false
