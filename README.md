@@ -1,3 +1,5 @@
+The PwnHub bot -- rewritten in Rust.
+
 ## License
 
 Licensed under either of

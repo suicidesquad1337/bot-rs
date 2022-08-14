@@ -1,11 +1,16 @@
 pre-release-hook = [
     "git-cliff",
+    "-v",
     "-o",
-    "../CHANGELOG.md",
+    "CHANGELOG.md",
     "-c",
     "../cliff.toml",
     "-r",
     "../",
     "-t",
     "{{tag_name}}",
+    "-p",
+    "CHANGELOG.md",
+    "--unreleased",
+    "{{crate_name}}-v{{prev_version}}..HEAD",
 ]
