@@ -38,7 +38,8 @@ jobs:
                   fingerprint: 97846C8651A44F47
                   git_commit_gpgsign: true
                   git_tag_gpgsign: true
-                  git_push_gpgsign: true
+                  # not supported by github
+                  git_push_gpgsign: false
             #- name: set git user and email and signing key
             #  run: |
             #      git conifg user.signingkey 97846C8651A44F47
