@@ -26,6 +26,8 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
             - name: install git-cliff
               uses: actions-rs/install@v0.1
               with:
@@ -40,4 +42,4 @@ jobs:
               run: |
                   OVERWRITE=${{ inputs.overwrite_version }}
                   BUMP_LEVEL=${OVERWRITE:-${{ inputs.bump_level}}}
-                  cargo release --verbose --execute --no-verify --no-publish --workspace $BUMP_LEVEL
+                  cargo release --verbose --execute --no-verify --no-publish --no-confirm --workspace $BUMP_LEVEL
