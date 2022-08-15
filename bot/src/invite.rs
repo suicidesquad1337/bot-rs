@@ -60,8 +60,6 @@ impl From<InviteCreateEvent> for Invite {
     fn from(v: InviteCreateEvent) -> Self {
         let created_at = Utc::now();
         Self {
-            // TODO: ensure that this assumption is correct: If an invite does not expire, the max
-            // age is 0
             max_age: if v.max_age != 0 {
                 Some(
                     created_at
@@ -120,7 +118,7 @@ impl InviteStore {
                     }
                     None => {
                         // "inital" store with the invites that we loaded for this guild
-                        // This branch should be called exactly once for the first guild the bot
+                        // This branch should be called exactly once for every guild the bot
                         // joined
                         let store: HashMap<GuildId, HashMap<String, Invite>> =
                             HashMap::from_iter(once((guild.id, HashMap::from_iter(invites))));
