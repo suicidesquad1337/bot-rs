@@ -1,5 +1,13 @@
-use futures::TryStreamExt;
-use poise::serenity_prelude::{CacheHttp, Invite as SerenityInvite, Member, Permissions, UserId};
+use std::collections::HashSet;
+
+use futures::{future, stream, Stream, StreamExt, TryStreamExt};
+use poise::{
+    serenity_prelude::{
+        AutocompleteInteraction, CacheHttp, Invite as SerenityInvite, Member, Permissions, UserId,
+    },
+    ApplicationCommandOrAutocompleteInteraction, ApplicationContext,
+};
+use sqlx::PgPool;
 use tracing::{Instrument, Level};
 
 use crate::{invite::InviteStore, Context, Result};
@@ -28,13 +36,6 @@ pub async fn revoke(
     if member.is_some() && !privileged {
         return Err(anyhow!(
             "You don't have the permission to revoke the invites of other members"
-        )
-        .into());
-    }
-    if invite.is_some() && member.is_some() {
-        return Err(anyhow!(
-            "You can't use both `invite` and `member`. Either delete the `invite` or all invites \
-             of a `member`"
         )
         .into());
     }
@@ -140,12 +141,31 @@ async fn delete_invite(ctx: Context<'_>, invite: &str, kick: bool) -> Result<Str
     Ok(invite.code)
 }
 
-// TODO: also list invites that aren't valid anymore but are contained in the
-// database
+/// Returns all invites that are from `inviter` and were used at least once
+async fn db_invites<'a>(pool: &'a PgPool, inviter: &str) -> impl Stream<Item = String> + 'a {
+    sqlx::query!(
+        r#"SELECT DISTINCT ON (invite) invite FROM invited_members WHERE "inviter" = $1"#,
+        inviter
+    )
+    .fetch(pool)
+    .map_ok(|r| r.invite)
+    // just ignore rows that returned an error
+    .then(|r| future::ready(stream::iter(r.into_iter())))
+    .flatten()
+}
 #[instrument(skip(ctx))]
-async fn autocomplete_invite(ctx: Context<'_>, partial: &str) -> Vec<String> {
-    let reader = ctx.discord().data.read().await;
-    let reader = reader.get::<InviteStore>().unwrap().read().await;
+async fn autocomplete_invite<'a>(
+    ctx: Context<'a>,
+    partial: &str,
+) -> impl Stream<Item = String> + 'a {
+    let interaction: &AutocompleteInteraction = match ctx {
+        Context::Application(ApplicationContext {
+            interaction: ApplicationCommandOrAutocompleteInteraction::Autocomplete(interaction),
+            ..
+        }) => interaction,
+        _ => unreachable!("non-autocomplete interaction in autocomplete callback"),
+    };
+
     let privileged = ctx
         .guild()
         .unwrap()
@@ -154,16 +174,42 @@ async fn autocomplete_invite(ctx: Context<'_>, partial: &str) -> Vec<String> {
         .unwrap_or(Permissions::empty())
         .manage_guild();
 
-    reader
+    let member = match privileged {
+        true => interaction
+            .data
+            .options
+            .iter()
+            .find(|c| c.name == "member")
+            .and_then(|c| c.value.as_ref())
+            .and_then(|v| v.as_str())
+            .map(|v| v.to_owned())
+            .unwrap_or_else(|| ctx.author().id.0.to_string()),
+        false => ctx.author().id.0.to_string(),
+    };
+    debug!(
+        member = member,
+        "Autocompleting invites for member {}", &member,
+    );
+
+    let reader = ctx.discord().data.read().await;
+
+    let db_invites = db_invites(&ctx.data().pool, member.as_str()).await;
+
+    let reader = reader.get::<InviteStore>().unwrap().read().await;
+
+    let local_invites: HashSet<String> = reader
         .get(&ctx.guild_id().unwrap())
         .unwrap()
         .iter()
         .filter(move |(code, invite)| {
-            // privileged/admin members are able to revoke any invite and therefore it
-            // should autocomplete for all invites
-            ((invite.inviter == ctx.author().id) || privileged)
+            invite.inviter.to_string() == member
                 && code.to_lowercase().starts_with(&partial.to_lowercase())
         })
         .map(|(code, _)| code.to_owned())
-        .collect()
+        .collect();
+    // This can probably be optimized somehow
+    let filter = local_invites.clone();
+    // first push all the local invites out and then add (old) invites from the
+    // database
+    stream::iter(local_invites).chain(db_invites.filter(move |i| future::ready(filter.contains(i))))
 }
