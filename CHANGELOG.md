@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [pwnhub-bot-v0.0.2] - 2022-08-16
+
+### Bug Fixes
+
+- Run cargo sqlx prepare
+
+### Features
+
+- Combine invite hints from local cahe and database and base hints on the member parameter
+
+### Miscellaneous Tasks
+
+- Update a code commit
+
 ## [pwnhub-bot-v0.0.1] - 2022-08-14
 
 ### Bug Fixes
