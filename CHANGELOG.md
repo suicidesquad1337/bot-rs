@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [pwnhub-bot-v0.0.4] - 2022-08-16
+
+### Bug Fixes
+
+- Run cargo sqlx prepare
+
+### CI/CD
+
+- Enable verify option in cargo-release
+
 ## [pwnhub-bot-v0.0.3] - 2022-08-16
 
 ### Bug Fixes
