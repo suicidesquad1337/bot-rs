@@ -54,7 +54,7 @@ jobs:
               run: |
                   OVERWRITE=${{ inputs.overwrite_version }}
                   BUMP_LEVEL=${OVERWRITE:-${{ inputs.bump_level}}}
-                  cargo release --verbose --execute --no-verify --no-publish --sign --no-confirm --workspace $BUMP_LEVEL
+                  cargo release --verbose --execute --no-publish --sign --no-confirm --workspace $BUMP_LEVEL
             - name: extract version
               run: |
                   echo VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select( .name=="pwnhub-bot" ) | .version') >> $GITHUB_ENV
