@@ -217,4 +217,5 @@ async fn autocomplete_invite<'a>(
     // database
     stream::iter(local_invites)
         .chain(db_invites.filter(move |i| future::ready(!filter.contains(i))))
+        .filter(move |i| future::ready(i.starts_with(partial)))
 }
