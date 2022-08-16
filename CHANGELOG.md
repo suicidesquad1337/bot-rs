@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [pwnhub-bot-v0.0.3] - 2022-08-16
+
+### Bug Fixes
+
+- Correctly filter member parameter and invite duplicates
+
 ## [pwnhub-bot-v0.0.2] - 2022-08-16
 
 ### Bug Fixes
