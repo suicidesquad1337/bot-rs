@@ -1,6 +1,6 @@
 {
   "db": "PostgreSQL",
-  "0593e27df1d48ad253e1466920cebc413258a14f821f46f6b3bb34540a383d7d": {
+  "713cd95d42ff59350220d0386218f7759d24c9c2b79e781f8c9bff39867f9cd1": {
     "describe": {
       "columns": [
         {
@@ -18,7 +18,7 @@
         ]
       }
     },
-    "query": "SELECT DISTINCT ON (invite) invite FROM invited_members WHERE \"inviter\" = $1"
+    "query": "SELECT DISTINCT ON (invite) invite FROM invited_members WHERE inviter = $1"
   },
   "85dd2a7a8cf102d52d46668683c65d0dbf8f5230f58db8aa15867ba6ae1a6dff": {
     "describe": {
