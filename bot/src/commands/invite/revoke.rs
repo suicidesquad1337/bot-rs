@@ -144,8 +144,8 @@ async fn delete_invite(ctx: Context<'_>, invite: &str, kick: bool) -> Result<Str
 /// Returns all invites that are from `inviter` and were used at least once
 async fn db_invites<'a>(pool: &'a PgPool, inviter: &str) -> impl Stream<Item = String> + 'a {
     sqlx::query!(
-        r#"SELECT DISTINCT ON (invite) invite FROM invited_members WHERE "inviter" = $1"#,
-        inviter
+        r#"SELECT DISTINCT ON (invite) invite FROM invited_members WHERE inviter = $1"#,
+        inviter,
     )
     .fetch(pool)
     .map_ok(|r| r.invite)
@@ -156,7 +156,7 @@ async fn db_invites<'a>(pool: &'a PgPool, inviter: &str) -> impl Stream<Item = S
 #[instrument(skip(ctx))]
 async fn autocomplete_invite<'a>(
     ctx: Context<'a>,
-    partial: &str,
+    partial: &'a str,
 ) -> impl Stream<Item = String> + 'a {
     let interaction: &AutocompleteInteraction = match ctx {
         Context::Application(ApplicationContext {
@@ -179,20 +179,26 @@ async fn autocomplete_invite<'a>(
             .data
             .options
             .iter()
-            .find(|c| c.name == "member")
+            .find(|parent| parent.name == "revoke")
+            .and_then(|cmd| cmd.options.iter().find(|c| c.name == "member"))
             .and_then(|c| c.value.as_ref())
             .and_then(|v| v.as_str())
             .map(|v| v.to_owned())
             .unwrap_or_else(|| ctx.author().id.0.to_string()),
         false => ctx.author().id.0.to_string(),
     };
-    debug!(
+
+    info!(
         member = member,
         "Autocompleting invites for member {}", &member,
     );
 
     let reader = ctx.discord().data.read().await;
 
+    // TODO: consider caching this since for each newly typed character (each new
+    // autocomplete request), a call to the database is performed. This is (mostly)
+    // needless however, since the invites probably won't change in this short time
+    // frame. A crate for this would be `moka`.
     let db_invites = db_invites(&ctx.data().pool, member.as_str()).await;
 
     let reader = reader.get::<InviteStore>().unwrap().read().await;
@@ -201,15 +207,14 @@ async fn autocomplete_invite<'a>(
         .get(&ctx.guild_id().unwrap())
         .unwrap()
         .iter()
-        .filter(move |(code, invite)| {
-            invite.inviter.to_string() == member
-                && code.to_lowercase().starts_with(&partial.to_lowercase())
-        })
+        .filter(move |(_, invite)| invite.inviter.to_string() == member)
         .map(|(code, _)| code.to_owned())
         .collect();
-    // This can probably be optimized somehow
+    // This can probably be optimized somehow. Since this optimization is trivial,
+    // it is left as an exercise to the reader.
     let filter = local_invites.clone();
     // first push all the local invites out and then add (old) invites from the
     // database
-    stream::iter(local_invites).chain(db_invites.filter(move |i| future::ready(filter.contains(i))))
+    stream::iter(local_invites)
+        .chain(db_invites.filter(move |i| future::ready(!filter.contains(i))))
 }
