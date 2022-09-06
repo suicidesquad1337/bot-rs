@@ -114,7 +114,7 @@ async fn main() -> anyhow::Result<()> {
             Ok(()) => {
                 let mut x = (*shardmanager).lock().await;
                 x.shutdown_all().await;
-            },
+            }
             Err(err) => panic!("Unable to listen for shutdown signal: {}", err),
         };
     });

@@ -38,9 +38,10 @@ where
 }
 
 /// Generate a human readable penalty
-/// 
+///
 /// Formulate the penalty in human readable words.<br>
-/// This puts out a string like `timeout until <t:1543392060:R>` or `permanent ban`
+/// This puts out a string like `timeout until <t:1543392060:R>` or `permanent
+/// ban`
 fn gen_penalty_string(penalty: Penalty) -> String {
     let mut sb = String::new();
     sb.push_str("a ");
