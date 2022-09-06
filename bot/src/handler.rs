@@ -4,7 +4,7 @@ use chrono::{Duration, Utc};
 use poise::{
     dispatch_event,
     serenity_prelude::{
-        Color, Context, EventHandler, Guild, Interaction, InviteCreateEvent, InviteDeleteEvent,
+        Context, EventHandler, Guild, Interaction, InviteCreateEvent, InviteDeleteEvent,
         Member, Message, Ready, ShardManager, StickerFormatType, UnavailableGuild, UserId,
     },
     Event, FrameworkContext, FrameworkOptions,
