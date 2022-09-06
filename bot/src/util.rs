@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use poise::serenity_prelude::{Color, Context, Message, Result, User};
 
+#[allow(dead_code)]
 pub enum Penalty {
     Timeout(DateTime<Utc>),
     Ban(Option<DateTime<Utc>>),
