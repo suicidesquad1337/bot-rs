@@ -1,11 +1,11 @@
 use std::{fmt::Debug, sync::Arc};
 
-use chrono::{Utc, Duration};
+use chrono::{Duration, Utc};
 use poise::{
     dispatch_event,
     serenity_prelude::{
         Context, EventHandler, Guild, Interaction, InviteCreateEvent, InviteDeleteEvent, Member,
-        Message, Ready, ShardManager, UnavailableGuild, UserId, StickerFormatType,
+        Message, Ready, ShardManager, StickerFormatType, UnavailableGuild, UserId,
     },
     Event, FrameworkContext, FrameworkOptions,
 };
@@ -79,14 +79,24 @@ where
         if !new_message.is_private() {
             for sticker in &new_message.sticker_items {
                 if sticker.format_type == StickerFormatType::Lottie {
-                    new_message.author.direct_message(&ctx, |m| m.content("fuck off")).await;
-                    new_message.member(&ctx).await.unwrap().disable_communication_until_datetime(&ctx, (Utc::now() + Duration::minutes(1)).into()).await;
+                    new_message
+                        .author
+                        .direct_message(&ctx, |m| m.content("fuck off"))
+                        .await;
+                    new_message
+                        .member(&ctx)
+                        .await
+                        .unwrap()
+                        .disable_communication_until_datetime(
+                            &ctx,
+                            (Utc::now() + Duration::minutes(1)).into(),
+                        )
+                        .await;
                     new_message.delete(&ctx).await;
                 }
             }
         }
 
-        
         self.dispatch_event(ctx, Event::Message { new_message })
             .instrument(debug_span!("dispatch_message_event"))
             .await;
