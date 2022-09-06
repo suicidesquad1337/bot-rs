@@ -1,17 +1,21 @@
 use std::{fmt::Debug, sync::Arc};
 
+use chrono::{Duration, Utc};
 use poise::{
     dispatch_event,
     serenity_prelude::{
-        Context, EventHandler, Guild, Interaction, InviteCreateEvent, InviteDeleteEvent, Member,
-        Message, Ready, ShardManager, UnavailableGuild, UserId,
+        Context, EventHandler, Guild, Interaction, InviteCreateEvent, InviteDeleteEvent,
+        Member, Message, Ready, ShardManager, StickerFormatType, UnavailableGuild, UserId,
     },
     Event, FrameworkContext, FrameworkOptions,
 };
 use tokio::sync::{Mutex, RwLock};
 use tracing::{Instrument, Level};
 
-use crate::invite::{InviteStore, InviteTracker};
+use crate::{
+    invite::{InviteStore, InviteTracker},
+    util::send_sanction_notification,
+};
 
 #[derive(Debug)]
 pub struct GlobalEventHandler<D, E> {
@@ -72,7 +76,31 @@ where
     }
 
     #[instrument(skip_all)]
+    #[allow(unused_must_use)]
     async fn message(&self, ctx: Context, new_message: Message) {
+        // prevent sending of default stickers
+        if !new_message.is_private() {
+            for sticker in &new_message.sticker_items {
+                if sticker.format_type == StickerFormatType::Lottie {
+                    let comms_disabled_until = Utc::now() + Duration::minutes(1);
+                    send_sanction_notification(
+                        &ctx,
+                        &new_message.author,
+                        "sending a default sticker",
+                        crate::util::Penalty::Timeout(comms_disabled_until),
+                    )
+                    .await;
+                    new_message
+                        .member(&ctx)
+                        .await
+                        .unwrap()
+                        .disable_communication_until_datetime(&ctx, comms_disabled_until.into())
+                        .await;
+                    new_message.delete(&ctx).await;
+                }
+            }
+        }
+
         self.dispatch_event(ctx, Event::Message { new_message })
             .instrument(debug_span!("dispatch_message_event"))
             .await;
