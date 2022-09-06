@@ -1,5 +1,6 @@
 use std::{fmt::Debug, sync::Arc};
 
+use chrono::{Utc, Duration};
 use poise::{
     dispatch_event,
     serenity_prelude::{
@@ -72,13 +73,20 @@ where
     }
 
     #[instrument(skip_all)]
+    #[allow(unused_must_use)]
     async fn message(&self, ctx: Context, new_message: Message) {
-        for sticker in &new_message.sticker_items {
-            if sticker.format_type == StickerFormatType::Lottie {
-                new_message.reply_mention(&ctx, "hurensohn").await;
-                new_message.delete(&ctx).await;
+        // prevent sending of default stickers
+        if !new_message.is_private() {
+            for sticker in &new_message.sticker_items {
+                if sticker.format_type == StickerFormatType::Lottie {
+                    new_message.author.direct_message(&ctx, |m| m.content("fuck off")).await;
+                    new_message.member(&ctx).await.unwrap().disable_communication_until_datetime(&ctx, (Utc::now() + Duration::minutes(1)).into()).await;
+                    new_message.delete(&ctx).await;
+                }
             }
         }
+
+        
         self.dispatch_event(ctx, Event::Message { new_message })
             .instrument(debug_span!("dispatch_message_event"))
             .await;
