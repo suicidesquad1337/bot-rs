@@ -106,6 +106,18 @@ async fn main() -> anyhow::Result<()> {
 
     *handler.shard_manager.write().await = Some(client.shard_manager.clone());
 
+    let shardmanager = client.shard_manager.clone();
+
+    tokio::spawn(async move {
+        match tokio::signal::ctrl_c().await {
+            Ok(()) => {
+                let mut x = (*shardmanager).lock().await;
+                x.shutdown_all().await;
+            },
+            Err(err) => panic!("Unable to listen for shutdown signal: {}", err),
+        };
+    });
+
     client.start().await?;
 
     Ok(())
