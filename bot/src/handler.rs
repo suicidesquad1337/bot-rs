@@ -4,15 +4,18 @@ use chrono::{Duration, Utc};
 use poise::{
     dispatch_event,
     serenity_prelude::{
-        Context, EventHandler, Guild, Interaction, InviteCreateEvent, InviteDeleteEvent, Member,
-        Message, Ready, ShardManager, StickerFormatType, UnavailableGuild, UserId,
+        Color, Context, EventHandler, Guild, Interaction, InviteCreateEvent, InviteDeleteEvent,
+        Member, Message, Ready, ShardManager, StickerFormatType, UnavailableGuild, UserId,
     },
     Event, FrameworkContext, FrameworkOptions,
 };
 use tokio::sync::{Mutex, RwLock};
 use tracing::{Instrument, Level};
 
-use crate::invite::{InviteStore, InviteTracker};
+use crate::{
+    invite::{InviteStore, InviteTracker},
+    util::send_sanction_notification,
+};
 
 #[derive(Debug)]
 pub struct GlobalEventHandler<D, E> {
@@ -79,18 +82,19 @@ where
         if !new_message.is_private() {
             for sticker in &new_message.sticker_items {
                 if sticker.format_type == StickerFormatType::Lottie {
-                    new_message
-                        .author
-                        .direct_message(&ctx, |m| m.content("fuck off"))
-                        .await;
+                    let comms_disabled_until = Utc::now() + Duration::minutes(1);
+                    send_sanction_notification(
+                        &ctx,
+                        &new_message.author,
+                        "sending a default sticker",
+                        crate::util::Penalty::Timeout(comms_disabled_until),
+                    )
+                    .await;
                     new_message
                         .member(&ctx)
                         .await
                         .unwrap()
-                        .disable_communication_until_datetime(
-                            &ctx,
-                            (Utc::now() + Duration::minutes(1)).into(),
-                        )
+                        .disable_communication_until_datetime(&ctx, comms_disabled_until.into())
                         .await;
                     new_message.delete(&ctx).await;
                 }

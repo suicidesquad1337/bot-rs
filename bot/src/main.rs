@@ -20,6 +20,7 @@ mod data;
 mod handler;
 mod invite;
 mod register;
+mod util;
 
 #[doc(inline)]
 pub use {config::Config, data::Data};
