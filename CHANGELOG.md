@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [pwnhub-bot-v0.1.0] - 2022-09-06
+
+### Bug Fixes
+
+- Remove unused import
+
+### Documentation
+
+- Penalty string generation
+
+### Features
+
+- Prevent sending of default stickers
+- Filter invites based on partial input
+- Timeout on sending of default stickers
+- Notify user about penalty
+- Graceful shutdown
+- Allow unused penalty variants
+- Ci caching
+
+### Miscellaneous Tasks
+
+- Bump iana-time-zone from 0.1.44 to 0.1.47
+
+### Refactor
+
+- Fmt
+- Run nightly formatter
+
 ## [pwnhub-bot-v0.0.4] - 2022-08-16
 
 ### Bug Fixes
