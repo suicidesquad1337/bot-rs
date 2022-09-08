@@ -85,7 +85,11 @@ async fn main() -> anyhow::Result<()> {
                 ..Default::default()
             },
             owners,
-            commands: vec![register::register(), commands::invite(), commands::hackban()],
+            commands: vec![
+                register::register(),
+                commands::invite(),
+                commands::hackban(),
+            ],
             ..Default::default()
         },
         data: data.clone(),
