@@ -20,13 +20,12 @@ include = [
 
 [dependencies]
 tokio = { version = "1.20", features = ["full"] }
-sqlx = { version = "0.6", features = [
+sqlx = { version = "0.8", features = [
     "postgres",
     "chrono",
     "runtime-tokio-rustls",
+    "tls-rustls",
     "uuid",
-    "tls",
-    "offline",
     "macros",
 ] }
 figment = { version = "0.10", features = ["env", "toml"] }

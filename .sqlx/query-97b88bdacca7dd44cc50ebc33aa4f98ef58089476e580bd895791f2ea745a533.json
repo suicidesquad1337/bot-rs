@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT \"user\", \"used_at\" FROM invited_members WHERE invite = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "used_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "97b88bdacca7dd44cc50ebc33aa4f98ef58089476e580bd895791f2ea745a533"
+}
