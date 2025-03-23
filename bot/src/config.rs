@@ -36,7 +36,7 @@ impl Default for Tracing {
 }
 
 fn default_log_level() -> Level {
-    match cfg!(debug_asserations) {
+    match cfg!(debug_assertions) {
         true => Level::DEBUG,
         false => Level::WARN,
     }

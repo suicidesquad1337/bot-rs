@@ -272,8 +272,8 @@ impl InviteTracker {
             }
         };
 
-        let old_state: HashSet<_> = old_state_store.keys().into_iter().collect();
-        let current_state: HashSet<_> = current_state_store.keys().into_iter().collect();
+        let old_state: HashSet<_> = old_state_store.keys().collect();
+        let current_state: HashSet<_> = current_state_store.keys().collect();
 
         // if were is one invite missing, we know it is a invite which had only one use
         // left
