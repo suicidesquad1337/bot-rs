@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT DISTINCT ON (invite) invite FROM invited_members WHERE inviter = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "invite",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "713cd95d42ff59350220d0386218f7759d24c9c2b79e781f8c9bff39867f9cd1"
+}

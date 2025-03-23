@@ -20,22 +20,21 @@ include = [
 
 [dependencies]
 tokio = { version = "1.20", features = ["full"] }
-sqlx = { version = "0.6", features = [
+sqlx = { version = "0.8", features = [
     "postgres",
     "chrono",
     "runtime-tokio-rustls",
+    "tls-rustls",
     "uuid",
-    "tls",
-    "offline",
     "macros",
 ] }
 figment = { version = "0.10", features = ["env", "toml"] }
-secrecy = { version = "0.8", features = ["serde"] }
-serde_with = "2"
+secrecy = { version = "0.10", features = ["serde"] }
+serde_with = "3"
 serde = { version = "1", features = ["derive"] }
 anyhow = "1"
 tracing = { version = "0.1" }
-tracing-log = "0.1"
+tracing-log = "0.2"
 tracing-subscriber = { version = "0.3" }
 async-trait = "0.1"
 
@@ -49,9 +48,9 @@ serenity = { version = "0.11", default-features = false, features = [
     "model",
     "tokio_task_builder",
     "rustls_backend",
-    "utils"
+    "utils",
 ] }
 poise = { version = "0.3" }
 chrono = "0.4.20"
-comfy-table = { version = "6", default-features = false }
+comfy-table = { version = "7.1", default-features = false }
 futures = "0.3.21"
