@@ -111,21 +111,21 @@ fn generate_invite_table<'a>(
                     let days = match expires_in.num_days() {
                         0 => None,
                         x => {
-                            expires_in = expires_in - Duration::days(x);
+                            expires_in -= Duration::days(x);
                             Some(format!("{}d", x))
                         }
                     };
                     let hours = match expires_in.num_hours() {
                         0 => None,
                         x => {
-                            expires_in = expires_in - Duration::hours(x);
+                            expires_in -= Duration::hours(x);
                             Some(format!("{}h", x))
                         }
                     };
                     let minutes = match expires_in.num_minutes() {
                         0 => None,
                         x => {
-                            expires_in = expires_in - Duration::minutes(x);
+                            expires_in -= Duration::minutes(x);
                             Some(format!("{}min", x))
                         }
                     };
