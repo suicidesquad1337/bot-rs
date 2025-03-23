@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [pwnhub-bot-v0.2.0] - 2025-03-23
+
+### Bug Fixes
+
+- Clippy lints
+- Remove -o option from git-cliff
+
+### Features
+
+- Add hackban command
+
+### Miscellaneous Tasks
+
+- Update non breaking dependencies
+- Update sqlx
+- Update other non breaking dependencies
+
+### Refactor
+
+- Run fmt
+
 ## [pwnhub-bot-v0.1.0] - 2022-09-06
 
 ### Bug Fixes
