@@ -1,8 +1,6 @@
 pre-release-hook = [
     "git-cliff",
     "-v",
-    "-o",
-    "CHANGELOG.md",
     "-c",
     "../cliff.toml",
     "-r",
