@@ -15,7 +15,7 @@ COPY . .
 ARG SQLX_OFFLINE=true
 RUN cargo build --release -p pwnhub-bot
 
-FROM debian:buster-slim AS runtime
+FROM debian:12 AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/release/pwnhub-bot /usr/local/bin
 ENTRYPOINT [ "/usr/local/bin/pwnhub-bot" ]
